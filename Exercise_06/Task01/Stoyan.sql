@@ -27,6 +27,12 @@ FROM STUDIO JOIN MOVIE ON STUDIO.NAME = MOVIE.STUDIONAME
             JOIN STARSIN ON STARSIN.MOVIETITLE = MOVIE.TITLE
 GROUP BY STARSIN.STARNAME
 
+--or
+
+SELECT STARSIN.STARNAME, COUNT(STARSIN.MOVIETITLE)
+FROM STARSIN
+GROUP BY STARSIN.STARNAME
+
 --5. Напишете заявка, която за всяко студио извежда име на студиото и заглавие
 --на филма, излязъл последно на екран за това студио.
 SELECT m.STUDIONAME, m.TITLE
@@ -39,6 +45,13 @@ SELECT NAME
 FROM MOVIESTAR as m
 WHERE m.BIRTHDATE >= ALL(SELECT MOVIESTAR.BIRTHDATE FROM MOVIESTAR WHERE MOVIESTAR.GENDER = 'M')
   AND m.GENDER = 'M'
+
+--or
+
+SELECT TOP 1 MOVIESTAR.NAME
+FROM MOVIESTAR
+WHERE MOVIESTAR.GENDER = 'M'
+ORDER BY MOVIESTAR.BIRTHDATE DESC
 
 --7. Напишете заявка, която извежда име на актьор и име на студио за тези
 --актьори, участвали в най-много филми на това студио.
@@ -53,6 +66,18 @@ WHERE STUDIO.NAME = st.NAME
 GROUP BY STARSIN.STARNAME, STUDIO.Name
 ORDER BY COUNT(STARSIN.STARNAME) DESC)
 
+--or
+
+SELECT M.STUDIONAME, STARSIN.STARNAME, COUNT(M.TITLE) AS num_movies
+FROM STARSIN JOIN MOVIE as M
+                  ON STARSIN.MOVIETITLE = M.TITLE
+GROUP BY M.STUDIONAME, STARSIN.STARNAME
+HAVING COUNT(M.TITLE) >= ALL (SELECT COUNT(MOVIE.TITLE)
+                              FROM STARSIN JOIN MOVIE
+                                                ON STARSIN.MOVIETITLE = MOVIE.TITLE
+                              WHERE M.STUDIONAME = MOVIE.STUDIONAME
+                              GROUP BY MOVIE.STUDIONAME, STARSIN.STARNAME)
+
 --8. Напишете заявка, която извежда заглавие и година на филма, и брой на
 --актьорите, участвали в този филм за тези филми с повече от двама актьори.
 SELECT m.TITLE, m.YEAR, COUNT(si.STARNAME)
@@ -63,3 +88,11 @@ WHERE m.TITLE IN
        GROUP BY MOVIE.TITLE
        HAVING COUNT(STARSIN.STARNAME) > 2)
 GROUP BY m.TITLE, m.YEAR
+
+--or
+
+SELECT MOVIE.TITLE, MOVIE.YEAR, COUNT(STARSIN.STARNAME)
+FROM MOVIE JOIN STARSIN
+                ON MOVIE.TITLE = STARSIN.MOVIETITLE
+GROUP BY MOVIE.TITLE, MOVIE.YEAR
+HAVING COUNT(STARSIN.STARNAME) >= 2

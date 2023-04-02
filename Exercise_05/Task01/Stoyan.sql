@@ -53,6 +53,14 @@ FROM PRODUCT JOIN PC
                   ON PRODUCT.MODEL = PC.MODEL
 WHERE PC.PRICE = (SELECT MAX(PC.PRICE) FROM PC)
 
+--or
+
+SELECT PRODUCT.MAKER, PC.PRICE
+FROM PRODUCT JOIN PC
+                  ON PRODUCT.MODEL = PC.MODEL
+GROUP BY PC.PRICE, PRODUCT.MAKER
+HAVING PC.PRICE >= ALL(SELECT PC.PRICE FROM PC)
+
 --9. Напишете заявка, която извежда средната цена на персоналните компютри за
 --всяка честота по-голяма от 800.
 SELECT AVG(PC.SPEED), AVG(PC.PRICE)

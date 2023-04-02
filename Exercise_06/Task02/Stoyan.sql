@@ -46,6 +46,14 @@ FROM (SELECT COUNTRY
 GROUP BY OUTCOMES.BATTLE
 HAVING COUNT(CLASSES.COUNTRY) > COUNT(t.COUNTRY)
 
+--or
+
+SELECT O.BATTLE
+FROM OUTCOMES AS O
+GROUP BY O.BATTLE
+HAVING COUNT(O.SHIP) >
+       (SELECT COUNT(OUTCOMES.SHIP) FROM OUTCOMES GROUP BY OUTCOMES.BATTLE HAVING OUTCOMES.BATTLE = 'Surigao Strait')
+
 --6. Напишете заявка, която извежда имената на най-леките кораби с най-много
 --оръдия.
 SELECT SHIPS.NAME, CLASSES.DISPLACEMENT, CLASSES.NUMGUNS
@@ -75,6 +83,18 @@ HAVING O.RESULT = 'ok'
                  GROUP BY OUTCOMES.SHIP, OUTCOMES.RESULT, BATTLES.DATE
                  HAVING OUTCOMES.RESULT = 'damaged')
 
+--or
+
+SELECT COUNT(O.SHIP)
+FROM OUTCOMES as O JOIN BATTLES AS B
+                        ON O.BATTLE = B.NAME
+WHERE O.RESULT = 'ok'
+  AND O.SHIP IN
+      (SELECT OUTCOMES.SHIP FROM OUTCOMES JOIN BATTLES ON OUTCOMES.BATTLE = BATTLES.NAME
+       WHERE OUTCOMES.RESULT = 'damaged'
+         AND OUTCOMES.SHIP = O.SHIP AND
+               BATTLES.DATE < B.DATE)
+
 --8. Изведете име на корабите, които са били увредени в битка, но са били
 --поправени и по-късно са победили в по-мащабна битка (с повече кораби).
 SELECT O.SHIP
@@ -95,5 +115,5 @@ HAVING O.RESULT = 'ok'
                                   JOIN BATTLES
                                        ON OUTCOMES.BATTLE = BATTLES.NAME
                          WHERE OUTCOMES.SHIP = O.SHIP
-                         GROUP BY OUTCOMES.SHIP, OUTCOMES.RESULT, BATTLES.DATE
+                         GROUP BY OUTCOMES.BATTLE, OUTCOMES.RESULT, BATTLES.DATE
                          HAVING OUTCOMES.RESULT = 'damaged')
