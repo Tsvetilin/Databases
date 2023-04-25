@@ -26,7 +26,7 @@ CREATE TABLE Printer
 -- type - низ до 6 символа (забележка: type може да приема стойност 'laser', 'matrix' или 'jet'),
 -- color - низ от точно 1 символ, стойност по подразбиране 'n' (забележка: color може да приема стойност 'y' или 'n').
 ALTER TABLE Printer ADD type VARCHAR(6) CHECK (type IN('laser', 'matrix', 'jet')),
-                        color CHAR(1) DEFAULT 'n'
+                        color CHAR(1) DEFAULT 'n' CHECK (color IN('y', 'n'))
 
 -- Напишете заявка, която премахва атрибута price от релацията Printer.
 ALTER TABLE Printer DROP COLUMN price
