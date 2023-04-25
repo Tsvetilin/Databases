@@ -5,7 +5,7 @@ CREATE TABLE Users(
     id INT PRIMARY KEY,
     email VARCHAR(50),
     password VARCHAR(50),
-    registration_date DATE
+    registration_date DATETIME
 )
 
 -- Friends: двойки от номера на потребители, напр. ако 12 е приятел на 21, 25 и 40, ще има кортежи (12,21), (12,25), (12,40).
@@ -22,7 +22,7 @@ CREATE TABLE Walls(
     user_id INT,
     writer_id INT,
     message VARCHAR(100),
-    date DATE,
+    date DATETIME,
     FOREIGN KEY(user_id) REFERENCES Users(id),
     FOREIGN KEY(writer_id) REFERENCES Users(id)
 )
