@@ -1,5 +1,8 @@
 -- Нека създадем мини вариант на Facebook. Искаме да имаме следните релации (може да предложите и друг вариант):
 
+CREATE DATABASE Facebook
+USE FACEBOOK
+
 -- Users: уникален номер (id), email, парола, дата на регистрация.
 CREATE TABLE Users(
     id INT PRIMARY KEY,
@@ -42,3 +45,6 @@ CREATE TABLE GroupMembers(
     FOREIGN KEY(group_id) REFERENCES Groups(id),
     FOREIGN KEY(user_id) REFERENCES Users(id)
 )
+
+-- Изтрийте схемата, която сте създали в Задача 2.
+DROP DATABASE Facebook

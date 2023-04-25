@@ -1,4 +1,6 @@
 --Дефинирайте следните релации:
+CREATE DATABASE pctest
+USE pctest
 
 --Product (maker, model, type), където:
 -- модел е низ от точно 4 символа,
@@ -34,3 +36,4 @@ ALTER TABLE Printer DROP COLUMN price
 -- Изтрийте релациите, които сте създали в Задача 1.
 DROP TABLE Printer
 DROP TABLE Product
+DROP DATABASE pctest
