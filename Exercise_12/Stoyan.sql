@@ -142,3 +142,117 @@ SELECT MIN(PRICE)
 FROM PC
 GROUP BY HD
 HAVING HD >= 10 AND HD <= 30
+
+--Съставете изгледи, съдържащи имената на битките, които са по-мащабни от битката при
+--Guadalcanal. Под по-мащабна битка се разбира:
+--a) битка с повече участващи кораби;
+--b) битка с повече участващи страни.
+--Като използвате изгледите, напишете заявки, които извеждат съответните битки.
+
+CREATE VIEW guadalcanal_countries AS
+SELECT COUNT(COUNTRY) as Countries_Count
+FROM CLASSES
+         JOIN SHIPS
+              ON CLASSES.CLASS = SHIPS.CLASS
+         JOIN OUTCOMES
+              ON SHIPS.NAME = OUTCOMES.SHIP
+         JOIN BATTLES
+              ON BATTLES.NAME = OUTCOMES.BATTLE
+GROUP BY BATTLES.NAME
+HAVING BATTLES.NAME = 'Guadalcanal'
+
+CREATE VIEW more_countries_info AS
+SELECT  BATTLES.NAME
+FROM CLASSES
+         JOIN SHIPS
+              ON CLASSES.CLASS = SHIPS.CLASS
+         JOIN OUTCOMES
+              ON SHIPS.NAME = OUTCOMES.SHIP
+         JOIN BATTLES
+              ON BATTLES.NAME = OUTCOMES.BATTLE
+GROUP BY BATTLES.NAME
+HAVING COUNT(COUNTRY) > (SELECT * FROM guadalcanal_countries)
+
+CREATE VIEW guadalcanal_ships AS
+SELECT COUNT(SHIPS.NAME) as Countries_Count
+FROM CLASSES
+         JOIN SHIPS
+              ON CLASSES.CLASS = SHIPS.CLASS
+         JOIN OUTCOMES
+              ON SHIPS.NAME = OUTCOMES.SHIP
+         JOIN BATTLES
+              ON BATTLES.NAME = OUTCOMES.BATTLE
+GROUP BY BATTLES.NAME
+HAVING BATTLES.NAME = 'Guadalcanal'
+
+CREATE VIEW more_ships_info AS
+SELECT  BATTLES.NAME, COUNT(SHIPS.NAME)
+FROM CLASSES
+         JOIN SHIPS
+              ON CLASSES.CLASS = SHIPS.CLASS
+         JOIN OUTCOMES
+              ON SHIPS.NAME = OUTCOMES.SHIP
+         JOIN BATTLES
+              ON BATTLES.NAME = OUTCOMES.BATTLE
+GROUP BY BATTLES.NAME
+HAVING COUNT(SHIPS.NAME) > (SELECT * FROM guadalcanal_ships)
+
+--Изтрийте от таблицата Outcomes всички битки, в които е участвал един единствен кораб.
+
+DELETE FROM OUTCOMES
+WHERE OUTCOMES.BATTLE IN (SELECT BATTLES.NAME
+                          FROM BATTLES JOIN OUTCOMES
+                                            ON BATTLES.NAME = OUTCOMES.BATTLE
+                          GROUP BY BATTLES.NAME
+                          HAVING COUNT(SHIP)=1
+)
+
+--Изтрийте от таблицата Outcomes всички записи, в които участва кораб, потапян поне два
+--пъти и резултатът от съответната битка е 'sunk'.
+--Забележка: Преди това може да вмъкнете следните кортежи, за да проверите по-лесно как работи
+--написаната заявка.
+--INSERT INTO outcomes VALUES ('Missouri','Surigao Strait', 'sunk'),
+--('Missouri','North Cape', 'sunk'),
+--('Missouri','North Atlantic', 'ok');
+DELETE FROM OUTCOMES
+WHERE OUTCOMES.SHIP IN (SELECT OUTCOMES.SHIP
+                        FROM OUTCOMES
+                        WHERE result='sunk'
+                        GROUP BY OUTCOMES.SHIP
+                        HAVING COUNT(RESULT)=2
+)
+
+--Изведете всички битки, в които са участвали същите страни, като страните в битката при
+--Guadalcanal.
+--Възможен вариант за решаване: Създайте изглед, съдържащ всички битки и участващите в тях
+--страни. След това напишете заявка, като използвате и изгледа.
+
+CREATE VIEW battle_countries AS
+SELECT OUTCOMES.BATTLE as battle, CLASSES.COUNTRY as country
+FROM OUTCOMES JOIN SHIPS
+                   ON OUTCOMES.SHIP = SHIPS.NAME
+              JOIN CLASSES
+                   ON CLASSES.CLASS = SHIPS.CLASS
+
+SELECT battle
+FROM battle_countries
+WHERE country = (SELECT DISTINCT country from battle_countries where battle = 'Guadalcanal')
+
+--Намерете всяка страна в колко битки е участвала.
+--Забележка: Ако страната не е участвала в нито една битка (защото (а) няма кораби или (б) има
+--кораби, но те не са участвали в битка), то трябва да се покаже в резултата с брой кораби 0.
+
+CREATE VIEW countries_ships AS
+SELECT DISTINCT CLASSES.COUNTRY as country, SHIPS.NAME as ship
+FROM CLASSES LEFT JOIN SHIPS
+                       ON CLASSES.CLASS = SHIPS.CLASS
+
+CREATE VIEW ships_battles AS
+SELECT DISTINCT SHIPS.NAME as ship
+FROM SHIPS JOIN OUTCOMES
+                ON SHIPS.NAME = OUTCOMES.SHIP
+
+SELECT country, COUNT(ships_battles.ship)
+FROM countries_ships LEFT JOIN ships_battles
+                               ON countries_ships.ship = ships_battles.ship
+GROUP BY country
